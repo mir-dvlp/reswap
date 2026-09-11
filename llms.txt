@@ -1,0 +1,24 @@
+# @mir-ui/reswap
+
+ReSwap is a React 18+ library for accessible animated replacement of plain text. Stable imports: `ReSwap` and `ReSwapProvider` from `@mir-ui/reswap`. Pure helpers: `@mir-ui/reswap/core`. Do not use `@mir-ui/reswap/legacy` for new code.
+
+Core rules:
+- `children` must be one complete string. Keep the component mounted while the string changes.
+- `per="block"` for buttons/counters; `word` for headings/sentences; `char` for short expressive copy; `line` only for explicit newline characters.
+- Presets: `gentle`, `gentle-blur`, `blur`, `scale-blur`.
+- Synchronize related values by wrapping them in `ReSwapProvider` and giving them the same arbitrary `group` name.
+- A group shares the end of each animation phase. One value may use `group={["language", "card"]}` and select the event timing with `activeGroup`.
+- `phaseDuration` is one phase, so a sequential exit/enter swap is roughly twice that duration.
+- Rapid changes use latest-wins behavior. Reduced-motion updates are immediate.
+- ReSwap is for text, not icons or arbitrary React content.
+- Add `aria-live` only for a meaningful status, not decorative changes or full-page translation.
+
+Documentation:
+- README.md: overview and first integration
+- docs/getting-started.md: installation and first use
+- docs/concepts.md: duration, groups, height, update policy
+- docs/api-reference.md: complete stable API
+- docs/recipes.md: common implementation patterns
+- docs/ai-usage.md: constraints and verification for coding agents
+- docs/migration.md: deprecated API and legacy entry
+
