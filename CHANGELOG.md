@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Build distributable files during Git-based installation through npm's `prepare` lifecycle.
+- Make disabled and reduced-motion updates bypass the sequential animation queue.
 - Reduced the stable entry to `ReSwap`, `ReSwapProvider`, their public types, and core utilities.
 - Moved `ReSwapGroup` and deprecated prop aliases to `@mir-ui/reswap/legacy`.
 - Added human documentation, an AI integration guide, `llms.txt`, contribution guidance, licensing, and CI configuration.

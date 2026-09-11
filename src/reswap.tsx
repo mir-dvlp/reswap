@@ -217,11 +217,13 @@ export function ReSwap({
     observerRef.current = new ResizeObserver(measure);
     observerRef.current.observe(node);
   }, [as, stabilizeHeight]);
-  const requestedSegmentCount = getReSwapAnimatedSegmentCount(displayedChildren, per);
+  const immediate = Boolean(reduceMotion) || !shouldAnimate;
+  const renderedChildren = immediate ? children : displayedChildren;
+  const requestedSegmentCount = getReSwapAnimatedSegmentCount(renderedChildren, per);
   const effectivePer = per === "char" && requestedSegmentCount > maxAnimatedSegments ? "block" : per;
   const base = presets[preset];
-  const textSegments = splitReSwapSegments(displayedChildren, effectivePer);
-  const segmentCount = getReSwapAnimatedSegmentCount(displayedChildren, effectivePer);
+  const textSegments = splitReSwapSegments(renderedChildren, effectivePer);
+  const segmentCount = getReSwapAnimatedSegmentCount(renderedChildren, effectivePer);
   const synchronizedDuration = phaseDuration ?? namedGroupDuration;
   const sweep = synchronizedDuration && segmentCount > 1
     ? Math.min(staggerSweep / speedReveal, synchronizedDuration * 0.75)
@@ -250,6 +252,30 @@ export function ReSwap({
   };
   const computed = variants ? { container: { ...containerVariants, ...variants.container }, item: { ...itemVariants, ...variants.item } } : { container: containerVariants, item: itemVariants };
 
+  const swappingContent = (
+    <motion.span
+      ref={heightTiming === "after-exit" ? measureContent : undefined}
+      translate="no"
+      key={renderedChildren}
+      animate="visible"
+      exit="exit"
+      initial="hidden"
+      onAnimationComplete={finishSwap}
+      style={{ display: as === "span" ? "inline" : "block" }}
+      variants={computed.container}
+    >
+      <span style={visuallyHiddenStyle}>{renderedChildren}</span>
+      {textSegments.map((segment, index) => (
+        <Fragment key={`${per}-${index}-${segment}`}>
+          {segment.trim().length > 0
+            ? <Segment per={effectivePer} value={segment} variants={computed.item} className={segmentWrapperClassName} />
+            : segment}
+          {(effectivePer === "word" || effectivePer === "char") && index < textSegments.length - 1 ? " " : null}
+        </Fragment>
+      ))}
+    </motion.span>
+  );
+
   return (
     <MotionTag
       {...containerProps}
@@ -265,37 +291,17 @@ export function ReSwap({
         layout: { duration: reduceMotion || !shouldAnimate ? 0 : layoutDuration, ease: [0.22, 1, 0.36, 1] },
       }}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {(
-          <motion.span
-            ref={heightTiming === "after-exit" ? measureContent : undefined}
-            translate="no"
-            key={displayedChildren}
-            animate="visible"
-            exit="exit"
-            initial="hidden"
-            onAnimationComplete={finishSwap}
-            style={{ display: as === "span" ? "inline" : "block" }}
-            variants={computed.container}
-          >
-            <span style={visuallyHiddenStyle}>{displayedChildren}</span>
-            {textSegments.map((segment, index) => (
-              <Fragment key={`${per}-${index}-${segment}`}>
-                {segment.trim().length > 0
-                  ? <Segment per={effectivePer} value={segment} variants={computed.item} className={segmentWrapperClassName} />
-                  : segment}
-                {(effectivePer === "word" || effectivePer === "char") && index < textSegments.length - 1 ? " " : null}
-              </Fragment>
-            ))}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {immediate ? swappingContent : (
+        <AnimatePresence mode="wait" initial={false}>
+          {swappingContent}
+        </AnimatePresence>
+      )}
       {heightTiming === "with-exit" && as !== "span" && (
         <span
           ref={measureContent}
           aria-hidden="true"
           style={{ display: "block", left: 0, pointerEvents: "none", position: "absolute", top: 0, visibility: "hidden", width: "100%" }}
-        >{displayedChildren}</span>
+        >{renderedChildren}</span>
       )}
     </MotionTag>
   );
