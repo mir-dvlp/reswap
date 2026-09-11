@@ -2,7 +2,7 @@
 
 ## A swap has two visual phases
 
-With the default sequential behavior, the old value exits and the new value enters. `phaseDuration` describes one of those phases, not the entire swap. A `0.32s` phase therefore produces roughly `0.64s` of visual activity, plus `delay`.
+With the default sequential behavior, the old value exits and the new value enters. `phaseDuration` describes one of those phases, not the entire swap. A `0.32s` phase therefore produces roughly `0.64s` of visual activity, plus `delay`. `scale-blur` is the exception: its phases overlap by `0.08s` so the two values briefly dissolve into one another. Override that interval with `phaseOverlap`.
 
 ## Natural duration
 
@@ -61,4 +61,3 @@ ReSwap uses latest-wins semantics. While a swap is active, repeated updates repl
 ## Reduced motion
 
 When reduced motion is requested, content updates immediately. The semantic text remains correct and no animation queue is retained.
-

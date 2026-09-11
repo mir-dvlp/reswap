@@ -36,6 +36,8 @@ export type ReSwapAdvancedProps = {
   speedReveal?: number;
   speedSegment?: number;
   phaseDuration?: number;
+  /** Seconds that the outgoing and incoming phases overlap. Scale Blur defaults to one 80ms motion tick. */
+  phaseOverlap?: number;
   staggerSweep?: number;
   layoutDuration?: number;
   layout?: boolean | "position" | "size";
@@ -89,6 +91,7 @@ export function ReSwap({
   speedReveal = 1,
   speedSegment = 1,
   phaseDuration,
+  phaseOverlap,
   group,
   activeGroup,
   staggerSweep = RE_SWAP_MAX_STAGGER_SWEEP,
@@ -178,6 +181,14 @@ export function ReSwap({
     ? (segmentCount > 1 ? sweep / (segmentCount - 1) : 0)
     : Math.min(RE_SWAP_STAGGER_TIMES[effectivePer] / speedReveal, segmentCount > 1 ? RE_SWAP_MAX_STAGGER_SWEEP / (segmentCount - 1) : 0);
   const segmentDuration = synchronizedDuration ? synchronizedDuration - sweep : 0.32 / speedSegment;
+  const phaseSpan = segmentDuration + staggerStep * Math.max(0, segmentCount - 1);
+  const resolvedPhaseOverlap = Math.max(
+    0,
+    Math.min(phaseOverlap ?? (preset === "scale-blur" ? 0.08 : 0), phaseSpan),
+  );
+  const enterDelay = preset === "scale-blur"
+    ? Math.max(0, phaseSpan - resolvedPhaseOverlap)
+    : 0;
   const containerVariants: Variants = reduceMotion || !shouldAnimate ? {
     ...base.container,
     exit: { opacity: 0, transition: { duration: 0 } },
@@ -185,7 +196,7 @@ export function ReSwap({
   } : {
     ...base.container,
     exit: { ...base.container.exit, transition: { staggerChildren: staggerStep, staggerDirection: -1, ...containerTransition } },
-    visible: { ...base.container.visible, transition: { delayChildren: delay, staggerChildren: staggerStep, ...containerTransition } },
+    visible: { ...base.container.visible, transition: { delayChildren: delay + enterDelay, staggerChildren: staggerStep, ...containerTransition } },
   };
   const baseExit = base.item.exit as Record<string, unknown>;
   const baseVisible = base.item.visible as Record<string, unknown>;
@@ -239,7 +250,7 @@ export function ReSwap({
       }}
     >
       {immediate ? swappingContent : (
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode={preset === "scale-blur" ? "popLayout" : "wait"} initial={false}>
           {swappingContent}
         </AnimatePresence>
       )}

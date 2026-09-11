@@ -27,6 +27,7 @@ Advanced props:
 | Prop | Description |
 | --- | --- |
 | `phaseDuration` | Strict duration in seconds for one exit or enter phase |
+| `phaseOverlap` | Overlap between exit and enter in seconds; `scale-blur` defaults to `0.08` |
 | `delay` | Delay before the transition |
 | `speedReveal` | Multiplier for overall reveal timing |
 | `speedSegment` | Multiplier for individual segment motion |
@@ -58,4 +59,3 @@ Import pure timing and segmentation helpers from `@mir-ui/reswap/core`. They are
 ## Legacy entry
 
 `@mir-ui/reswap/legacy` exports compatibility helpers and deprecated prop aliases. It is not the recommended source for new code. See [migration.md](./migration.md).
-

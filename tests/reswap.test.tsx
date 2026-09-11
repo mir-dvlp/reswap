@@ -2,7 +2,7 @@ import { forwardRef, useEffect, type ComponentPropsWithoutRef, type ElementType 
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const motionState = vi.hoisted(() => ({ reduced: false }));
+const motionState = vi.hoisted(() => ({ presenceMode: "", reduced: false }));
 
 vi.mock("motion/react", async () => {
   const React = await import("react");
@@ -22,7 +22,7 @@ vi.mock("motion/react", async () => {
         ...domProps
       } = props as ComponentPropsWithoutRef<ElementType> & {
         onAnimationComplete?: (definition: string) => void;
-        variants?: { visible?: { transition?: { duration?: number; staggerChildren?: number } } };
+        variants?: { visible?: { transition?: { delayChildren?: number; duration?: number; staggerChildren?: number } } };
       };
       useEffect(() => {
         if (!onAnimationComplete) return;
@@ -30,10 +30,12 @@ vi.mock("motion/react", async () => {
         return () => window.clearTimeout(timer);
       }, [onAnimationComplete, domProps.children]);
       const duration = variants?.visible?.transition?.duration;
+      const enterDelay = variants?.visible?.transition?.delayChildren;
       const stagger = variants?.visible?.transition?.staggerChildren;
       return React.createElement(tag, {
         ...domProps,
         ...(duration === undefined ? {} : { "data-motion-duration": duration }),
+        ...(enterDelay === undefined ? {} : { "data-motion-delay": enterDelay }),
         ...(stagger === undefined ? {} : { "data-motion-stagger": stagger }),
         ref,
       });
@@ -43,7 +45,10 @@ vi.mock("motion/react", async () => {
     return Component;
   };
   return {
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+    AnimatePresence: ({ children, mode }: { children: React.ReactNode; mode?: string }) => {
+      motionState.presenceMode = mode ?? "";
+      return children;
+    },
     motion: new Proxy({}, { get: (_target, property) => getMotionComponent(String(property)) }),
     useReducedMotion: () => motionState.reduced,
   };
@@ -53,6 +58,7 @@ import { ReSwap, ReSwapProvider } from "../src/reswap";
 
 describe("ReSwap", () => {
   beforeEach(() => {
+    motionState.presenceMode = "";
     motionState.reduced = false;
   });
 
@@ -86,6 +92,21 @@ describe("ReSwap", () => {
     const view = render(<ReSwap as="span" layout="size">Связаться</ReSwap>);
     const host = view.container.firstElementChild as HTMLElement | null;
     expect(host?.style.display).toBe("inline-block");
+  });
+
+  it("slightly overlaps Scale Blur exit and enter phases", () => {
+    const view = render(<ReSwap as="span" per="block" phaseDuration={0.32} preset="scale-blur">Связаться</ReSwap>);
+    const animated = view.container.querySelector("[data-motion-delay]");
+
+    expect(motionState.presenceMode).toBe("popLayout");
+    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0.24);
+  });
+
+  it("allows the Scale Blur overlap to be tuned", () => {
+    const view = render(<ReSwap as="span" per="block" phaseDuration={0.32} phaseOverlap={0.04} preset="scale-blur">Связаться</ReSwap>);
+    const animated = view.container.querySelector("[data-motion-delay]");
+
+    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0.28);
   });
 
   it("updates immediately when animation is disabled", () => {

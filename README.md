@@ -66,6 +66,7 @@ Available presets are `gentle`, `gentle-blur`, `blur`, and `scale-blur`.
 - Reduced-motion users receive an immediate update.
 - `heightTiming="after-exit"` waits for the old text to leave before resizing; `"with-exit"` starts resizing during exit.
 - `phaseDuration` is one exit or enter phase. A sequential swap is approximately two phases, plus any delay.
+- `scale-blur` overlaps exit and enter by `80ms` by default; use `phaseOverlap` to tune or disable it.
 - ReSwap animates text only. Keep arbitrary React nodes and icon morphing in a separate component.
 
 ## Accessibility
