@@ -227,8 +227,9 @@ export function ReSwap({
       {...containerProps}
       animate={stabilizeHeight && measuredHeight !== undefined ? { height: measuredHeight } : undefined}
       className={className}
-      layout={as !== "span" ? layout : false}
+      layout={layout}
       style={{
+        display: as === "span" ? (layout ? "inline-block" : "inline") : "block",
         ...containerProps?.style,
         ...(heightTiming === "with-exit" && as !== "span" ? { position: "relative" as const } : {}),
       }}

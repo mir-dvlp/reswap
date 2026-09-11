@@ -82,6 +82,12 @@ describe("ReSwap", () => {
     expect(status?.style.position).toBe("relative");
   });
 
+  it("lets compact inline content animate its own size", () => {
+    const view = render(<ReSwap as="span" layout="size">Связаться</ReSwap>);
+    const host = view.container.firstElementChild as HTMLElement | null;
+    expect(host?.style.display).toBe("inline-block");
+  });
+
   it("updates immediately when animation is disabled", () => {
     const view = render(<ReSwap animate={false}>Первый текст</ReSwap>);
     view.rerender(<ReSwap animate={false}>Второй текст</ReSwap>);
