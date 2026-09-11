@@ -27,7 +27,7 @@ Advanced props:
 | Prop | Description |
 | --- | --- |
 | `phaseDuration` | Strict duration in seconds for one exit or enter phase |
-| `phaseOverlap` | Overlap between exit and enter in seconds; `scale-blur` defaults to `0.08` |
+| `phaseOverlap` | Overlap between exit and enter in seconds; `scale-blur` defaults to `0.16` |
 | `delay` | Delay before the transition |
 | `speedReveal` | Multiplier for overall reveal timing |
 | `speedSegment` | Multiplier for individual segment motion |

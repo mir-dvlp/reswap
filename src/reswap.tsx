@@ -36,7 +36,7 @@ export type ReSwapAdvancedProps = {
   speedReveal?: number;
   speedSegment?: number;
   phaseDuration?: number;
-  /** Seconds that the outgoing and incoming phases overlap. Scale Blur defaults to one 80ms motion tick. */
+  /** Seconds that the outgoing and incoming phases overlap. Scale Blur defaults to two 80ms motion ticks. */
   phaseOverlap?: number;
   staggerSweep?: number;
   layoutDuration?: number;
@@ -184,7 +184,7 @@ export function ReSwap({
   const phaseSpan = segmentDuration + staggerStep * Math.max(0, segmentCount - 1);
   const resolvedPhaseOverlap = Math.max(
     0,
-    Math.min(phaseOverlap ?? (preset === "scale-blur" ? 0.08 : 0), phaseSpan),
+    Math.min(phaseOverlap ?? (preset === "scale-blur" ? 0.16 : 0), phaseSpan),
   );
   const enterDelay = preset === "scale-blur"
     ? Math.max(0, phaseSpan - resolvedPhaseOverlap)

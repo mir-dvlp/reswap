@@ -99,7 +99,7 @@ describe("ReSwap", () => {
     const animated = view.container.querySelector("[data-motion-delay]");
 
     expect(motionState.presenceMode).toBe("popLayout");
-    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0.24);
+    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0.16);
   });
 
   it("allows the Scale Blur overlap to be tuned", () => {
