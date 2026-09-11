@@ -1,8 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type Transition, type Variants } from "motion/react";
-import { createContext, Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type JSX, type ReactNode } from "react";
-import { getReSwapAnimatedSegmentCount, getReSwapDuration, getReSwapGraphemes, getReSwapGroupDuration, resolveReSwapGroupDurations, RE_SWAP_MAX_STAGGER_SWEEP, RE_SWAP_STAGGER_TIMES, splitReSwapSegments, type ReSwapPer } from "./core";
+import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
+import { getReSwapAnimatedSegmentCount, getReSwapDuration, getReSwapGraphemes, getReSwapGroupDuration, RE_SWAP_MAX_STAGGER_SWEEP, RE_SWAP_STAGGER_TIMES, splitReSwapSegments, type ReSwapPer } from "./core";
+import { ReSwapGroupsContext, useNamedGroupDuration } from "./group-context";
+
+export { ReSwapProvider } from "./group-context";
+export type { ReSwapGroupDefinition, ReSwapProviderProps } from "./group-context";
 
 export { getReSwapAnimatedSegmentCount, getReSwapDuration, getReSwapGroupDuration } from "./core";
 export type { ReSwapPer } from "./core";
@@ -44,65 +48,7 @@ export type ReSwapAdvancedProps = {
 
 export type ReSwapProps = ReSwapBasicProps & ReSwapAdvancedProps;
 
-export type ReSwapGroupDefinition = {
-  values: readonly string[];
-  per?: ReSwapPer;
-  speedReveal?: number;
-  speedSegment?: number;
-  phaseDuration?: number;
-};
-
-export type ReSwapProviderProps = {
-  children: ReactNode;
-  groups?: Readonly<Record<string, ReSwapGroupDefinition>>;
-};
-
-type ReSwapParticipant = {
-  names: readonly string[];
-  text: string;
-  per: ReSwapPer;
-  speedReveal: number;
-  speedSegment: number;
-};
-
-type ReSwapGroupsContextValue = {
-  durations: Readonly<Record<string, number>>;
-  register: (id: symbol, participant: ReSwapParticipant | null) => void;
-};
-
-const ReSwapGroupsContext = createContext<ReSwapGroupsContextValue | null>(null);
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
-
-export function ReSwapProvider({ children, groups = {} }: ReSwapProviderProps) {
-  const [participants, setParticipants] = useState<ReadonlyMap<symbol, ReSwapParticipant>>(() => new Map());
-  const register = useCallback((id: symbol, participant: ReSwapParticipant | null) => {
-    setParticipants((current) => {
-      const next = new Map(current);
-      if (participant) next.set(id, participant);
-      else next.delete(id);
-      return next;
-    });
-  }, []);
-  const durations = useMemo(() => resolveReSwapGroupDurations(groups, participants.values()), [groups, participants]);
-  const value = useMemo(() => ({ durations, register }), [durations, register]);
-  return <ReSwapGroupsContext.Provider value={value}>{children}</ReSwapGroupsContext.Provider>;
-}
-
-function useNamedGroupDuration(groupNames?: readonly string[], activeGroup?: string) {
-  const context = useContext(ReSwapGroupsContext);
-  const durations = context?.durations ?? {};
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production" || !activeGroup) return;
-    if (!groupNames?.includes(activeGroup)) console.warn(`[ReSwap] activeGroup "${activeGroup}" is not listed in groups.`);
-    else if (durations[activeGroup] === undefined) console.warn(`[ReSwap] group "${activeGroup}" is not defined by ReSwapProvider.`);
-  }, [activeGroup, durations, groupNames]);
-  if (!groupNames?.length) return undefined;
-  if (activeGroup && groupNames.includes(activeGroup) && durations[activeGroup] !== undefined) {
-    return durations[activeGroup];
-  }
-  const matches = groupNames.flatMap((name) => durations[name] === undefined ? [] : [durations[name]]);
-  return matches.length ? Math.max(...matches) : undefined;
-}
 
 const visuallyHiddenStyle: CSSProperties = { clip: "rect(0, 0, 0, 0)", clipPath: "inset(50%)", height: 1, overflow: "hidden", position: "absolute", userSelect: "none", whiteSpace: "nowrap", width: 1 };
 const container: Variants = {

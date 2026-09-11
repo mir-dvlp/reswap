@@ -33,6 +33,10 @@
       "types": "./dist/core.d.ts",
       "import": "./dist/core.js"
     },
+    "./provider": {
+      "types": "./dist/group-context.d.ts",
+      "import": "./dist/provider.js"
+    },
     "./legacy": {
       "types": "./dist/legacy.d.ts",
       "import": "./dist/legacy.js"

@@ -7,6 +7,7 @@ export default defineConfig({
     lib: {
       entry: {
         core: resolve(import.meta.dirname, "src/core.ts"),
+        provider: resolve(import.meta.dirname, "src/group-context.tsx"),
         index: resolve(import.meta.dirname, "src/index.ts"),
         legacy: resolve(import.meta.dirname, "src/legacy.tsx"),
       },

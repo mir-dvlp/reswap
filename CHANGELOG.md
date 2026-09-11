@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a lightweight `@mir-ui/reswap/provider` entry point so applications can
+  lazy-load the Motion-powered component without losing named group timing.
+
 - Build distributable files during Git-based installation through npm's `prepare` lifecycle.
 - Make disabled and reduced-motion updates bypass the sequential animation queue.
 - Reduced the stable entry to `ReSwap`, `ReSwapProvider`, their public types, and core utilities.

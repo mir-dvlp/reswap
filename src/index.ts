@@ -1,17 +1,19 @@
 export {
   ReSwap,
-  ReSwapProvider,
   getReSwapAnimatedSegmentCount,
   getReSwapDuration,
   getReSwapGroupDuration,
 } from "./reswap";
+export { ReSwapProvider } from "./group-context";
+export type {
+  ReSwapGroupDefinition,
+  ReSwapProviderProps,
+} from "./group-context";
 export type {
   ReSwapAdvancedProps,
   ReSwapBasicProps,
-  ReSwapGroupDefinition,
   ReSwapHeightTiming,
   ReSwapPer,
   ReSwapPreset,
   ReSwapProps,
-  ReSwapProviderProps,
 } from "./reswap";
