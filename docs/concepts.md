@@ -2,7 +2,7 @@
 
 ## A swap has two visual phases
 
-With the default sequential behavior, the old value exits and the new value enters. `phaseDuration` describes one of those phases, not the entire swap. A `0.32s` phase therefore produces roughly `0.64s` of visual activity, plus `delay`. `scale-blur` is the exception: its phases overlap by `0.16s` so the two values dissolve into one another. Override that interval with `phaseOverlap`.
+With the default sequential behavior, the old value exits and the new value enters. `phaseDuration` describes one of those phases, not the entire swap. A `0.32s` phase therefore produces roughly `0.64s` of visual activity, plus `delay`. `scale-blur` is the exception: its phases overlap by `0.32s` so equal-length phases crossfade concurrently. Override that interval with `phaseOverlap`.
 
 ## Natural duration
 

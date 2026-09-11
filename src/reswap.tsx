@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps, type Transition, type Variants } from "motion/react";
-import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
+import { AnimatePresence, motion, useIsPresent, useReducedMotion, type HTMLMotionProps, type Transition, type Variants } from "motion/react";
+import { Fragment, forwardRef, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
 import { getReSwapAnimatedSegmentCount, getReSwapDuration, getReSwapGraphemes, getReSwapGroupDuration, RE_SWAP_MAX_STAGGER_SWEEP, RE_SWAP_STAGGER_TIMES, splitReSwapSegments, type ReSwapPer } from "./core";
 import { ReSwapGroupsContext, useNamedGroupDuration } from "./group-context";
 
@@ -36,7 +36,7 @@ export type ReSwapAdvancedProps = {
   speedReveal?: number;
   speedSegment?: number;
   phaseDuration?: number;
-  /** Seconds that the outgoing and incoming phases overlap. Scale Blur defaults to two 80ms motion ticks. */
+  /** Seconds that the outgoing and incoming phases overlap. Scale Blur defaults to the 320ms step token. */
   phaseOverlap?: number;
   staggerSweep?: number;
   layoutDuration?: number;
@@ -64,6 +64,22 @@ const presets: Record<ReSwapPreset, { container: Variants; item: Variants }> = {
   gentle: { container, item: { exit: { opacity: 0, y: -16, transition: { ease: [0.6, 0, 0.8, 0] } }, hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { ease: [0.18, 0.72, 0.28, 1] } } } },
   "scale-blur": { container, item: { exit: { filter: "blur(8px)", opacity: 0, scale: 0.88 }, hidden: { filter: "blur(8px)", opacity: 0, scale: 0.88 }, visible: { filter: "blur(0px)", opacity: 1, scale: 1 } } },
 };
+
+const SwapLayer = forwardRef<HTMLSpanElement, HTMLMotionProps<"span"> & { absoluteOnExit: boolean }>(
+  function SwapLayer({ absoluteOnExit, style, ...props }, ref) {
+    const isPresent = useIsPresent();
+    return (
+      <motion.span
+        {...props}
+        ref={ref}
+        style={{
+          ...style,
+          ...(absoluteOnExit && !isPresent ? { left: 0, position: "absolute", top: 0 } : {}),
+        }}
+      />
+    );
+  },
+);
 
 function Segment({ value, variants, per, className }: { value: string; variants: Variants; per: ReSwapPer; className?: string }) {
   const content = per === "line" ? (
@@ -184,7 +200,7 @@ export function ReSwap({
   const phaseSpan = segmentDuration + staggerStep * Math.max(0, segmentCount - 1);
   const resolvedPhaseOverlap = Math.max(
     0,
-    Math.min(phaseOverlap ?? (preset === "scale-blur" ? 0.16 : 0), phaseSpan),
+    Math.min(phaseOverlap ?? (preset === "scale-blur" ? 0.32 : 0), phaseSpan),
   );
   const enterDelay = preset === "scale-blur"
     ? Math.max(0, phaseSpan - resolvedPhaseOverlap)
@@ -195,7 +211,10 @@ export function ReSwap({
     visible: { opacity: 1, transition: { duration: 0 } },
   } : {
     ...base.container,
-    exit: { ...base.container.exit, transition: { staggerChildren: staggerStep, staggerDirection: -1, ...containerTransition } },
+    exit: {
+      ...base.container.exit,
+      transition: { staggerChildren: staggerStep, staggerDirection: -1, ...containerTransition },
+    },
     visible: { ...base.container.visible, transition: { delayChildren: delay + enterDelay, staggerChildren: staggerStep, ...containerTransition } },
   };
   const baseExit = base.item.exit as Record<string, unknown>;
@@ -210,7 +229,8 @@ export function ReSwap({
   const computed = variants ? { container: { ...containerVariants, ...variants.container }, item: { ...itemVariants, ...variants.item } } : { container: containerVariants, item: itemVariants };
 
   const swappingContent = (
-    <motion.span
+    <SwapLayer
+      absoluteOnExit={preset === "scale-blur"}
       ref={heightTiming === "after-exit" ? measureContent : undefined}
       translate="no"
       key={renderedChildren}
@@ -230,7 +250,7 @@ export function ReSwap({
           {(effectivePer === "word" || effectivePer === "char") && index < textSegments.length - 1 ? " " : null}
         </Fragment>
       ))}
-    </motion.span>
+    </SwapLayer>
   );
 
   return (
@@ -242,7 +262,7 @@ export function ReSwap({
       style={{
         display: as === "span" ? (layout ? "inline-block" : "inline") : "block",
         ...containerProps?.style,
-        ...(heightTiming === "with-exit" && as !== "span" ? { position: "relative" as const } : {}),
+        ...((heightTiming === "with-exit" && as !== "span") || preset === "scale-blur" ? { position: "relative" as const } : {}),
       }}
       transition={{
         height: { duration: reduceMotion || !shouldAnimate ? 0 : layoutDuration, ease: [0.22, 1, 0.36, 1] },
@@ -250,7 +270,7 @@ export function ReSwap({
       }}
     >
       {immediate ? swappingContent : (
-        <AnimatePresence mode={preset === "scale-blur" ? "popLayout" : "wait"} initial={false}>
+        <AnimatePresence mode={preset === "scale-blur" ? "sync" : "wait"} initial={false}>
           {swappingContent}
         </AnimatePresence>
       )}

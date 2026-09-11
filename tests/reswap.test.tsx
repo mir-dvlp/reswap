@@ -50,6 +50,7 @@ vi.mock("motion/react", async () => {
       return children;
     },
     motion: new Proxy({}, { get: (_target, property) => getMotionComponent(String(property)) }),
+    useIsPresent: () => true,
     useReducedMotion: () => motionState.reduced,
   };
 });
@@ -98,8 +99,8 @@ describe("ReSwap", () => {
     const view = render(<ReSwap as="span" per="block" phaseDuration={0.32} preset="scale-blur">Связаться</ReSwap>);
     const animated = view.container.querySelector("[data-motion-delay]");
 
-    expect(motionState.presenceMode).toBe("popLayout");
-    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0.16);
+    expect(motionState.presenceMode).toBe("sync");
+    expect(Number(animated?.getAttribute("data-motion-delay"))).toBeCloseTo(0);
   });
 
   it("allows the Scale Blur overlap to be tuned", () => {
