@@ -68,13 +68,34 @@ const presets: Record<ReSwapPreset, { container: Variants; item: Variants }> = {
 const SwapLayer = forwardRef<HTMLSpanElement, HTMLMotionProps<"span"> & { absoluteOnExit: boolean }>(
   function SwapLayer({ absoluteOnExit, style, ...props }, ref) {
     const isPresent = useIsPresent();
+    const nodeRef = useRef<HTMLSpanElement | null>(null);
+    const sizeRef = useRef<{ height: number; width: number } | undefined>(undefined);
+    const setNode = useCallback((node: HTMLSpanElement | null) => {
+      nodeRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    }, [ref]);
+    useIsomorphicLayoutEffect(() => {
+      if (!isPresent || !nodeRef.current) return;
+      const rect = nodeRef.current.getBoundingClientRect();
+      sizeRef.current = { height: rect.height, width: rect.width };
+    }, [isPresent, props.children]);
+    const frozenSize = absoluteOnExit && !isPresent ? sizeRef.current : undefined;
     return (
       <motion.span
         {...props}
-        ref={ref}
+        ref={setNode}
         style={{
           ...style,
-          ...(absoluteOnExit && !isPresent ? { left: 0, position: "absolute", top: 0 } : {}),
+          ...(absoluteOnExit && !isPresent
+            ? {
+                height: frozenSize?.height,
+                left: 0,
+                position: "absolute",
+                top: 0,
+                width: frozenSize?.width,
+              }
+            : {}),
         }}
       />
     );
